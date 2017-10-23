@@ -1,0 +1,30 @@
+syntax="proto3";
+
+option java_multiple_files = true;
+option java_package = "com.xiao.grpc.test";
+option java_outer_classname = "TestProto";
+option objc_class_prefix = "HLW";
+
+package grpc;
+
+import "google/protobuf/any.proto";
+
+// The request message containing the user's name.
+message TestRequest {
+    string name = 1;
+
+    repeated int32 foo = 2;
+
+    oneof xx{
+        int32 aaa = 3;
+        string bbb = 4;
+        float ccc = 5;
+    }
+
+    map<string, int32> weight = 10;
+}
+
+message Test2{
+    google.protobuf.Any details = 2;
+}
+
