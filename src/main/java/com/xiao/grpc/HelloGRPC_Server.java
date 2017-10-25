@@ -5,13 +5,18 @@ import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class HelloGRPC_Server {
 
     private final Server server;
 
     public HelloGRPC_Server(int port) {
-        this.server = ServerBuilder.forPort(port).directExecutor().addService(new GreeterService()).build();
+        //this.server = ServerBuilder.forPort(port).directExecutor().addService(new GreeterService()).build();
+
+        ExecutorService pool = Executors.newFixedThreadPool(3);
+        this.server = ServerBuilder.forPort(port).executor(pool).addService(new GreeterService()).build();
     }
 
     private void start() throws IOException {
@@ -68,13 +73,8 @@ public class HelloGRPC_Server {
             //super.sayHello(request, responseObserver);
             //1.接收到的请求信息
             String requestName = request.getName();
-            System.out.println("receive：" + requestName);
+            System.out.println(Thread.currentThread().getName() + " >>> receive：" + requestName);
 
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             //2
             responseObserver.onNext(HelloReply.newBuilder().setMessage("I'm server,hello client.").build());
             //responseObserver.onNext(HelloReply.parseFrom());

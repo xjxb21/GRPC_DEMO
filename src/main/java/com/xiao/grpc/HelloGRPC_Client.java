@@ -7,6 +7,7 @@ import io.grpc.ManagedChannelBuilder;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Description:
@@ -34,24 +35,26 @@ public class HelloGRPC_Client {
 
             //2.调用 noBlock stub方法
             GreeterGrpc.GreeterFutureStub futureStub = GreeterGrpc.newFutureStub(channel);
-            final ListenableFuture<HelloReply> replyListenableFuture = futureStub.sayHello(HelloRequest.newBuilder().setName("hello-2").build());
-            System.out.println("trace here!");
 
-            replyListenableFuture.addListener(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        HelloReply helloReply = replyListenableFuture.get();
-                        System.out.println("receive from grpc server:" + helloReply.getMessage());
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
+            for (int i = 0; i < 100; i++) {
+                final ListenableFuture<HelloReply> replyListenableFuture = futureStub.sayHello(HelloRequest.newBuilder().setName("hello-2").build());
+                replyListenableFuture.addListener(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            HelloReply helloReply = replyListenableFuture.get();
+                            System.out.println(Thread.currentThread().getName()+" >>>receive from grpc server:" + helloReply.getMessage());
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        }
                     }
-                }
-            }, pool);
+                }, pool);
+            }
 
-            Thread.sleep(5000);
+            System.out.println("send message complete");
+            channel.awaitTermination(1, TimeUnit.MINUTES);
         } finally {
             if (pool != null) {
                 pool.shutdownNow();
